@@ -1,0 +1,8 @@
+{
+    "emmet.includeLanguages": {
+      "html": "html",
+      "javascript": "javascriptreact"
+    },
+    "emmet.triggerExpansionOnTab": true
+  }
+  
