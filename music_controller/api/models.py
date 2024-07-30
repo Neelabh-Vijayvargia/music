@@ -10,7 +10,7 @@ def generate_unique_code():
         code = ''.join(random.choices(string.ascii_uppercase, k = length))
 
         #check code being unique
-        if Room.objects.filter(code=code).count() == 0:
+        if Room.objects.filter(room_code=code).count() == 0:
             break
     
     return code
@@ -23,7 +23,7 @@ def generate_unique_code():
 # room model
 class Room(models.Model):
     # unique:=unique_key
-    room_code = models.CharField(max_length=8, default='', unique=True)
+    room_code = models.CharField(max_length=8, default=generate_unique_code, unique=True)
     host = models.CharField(max_length=50, unique=True) #unique == only one room per host
     guest_can_pause = models.BooleanField(null = False, default=False)
     votes_to_skip = models.IntegerField(null = False, default = 1)
