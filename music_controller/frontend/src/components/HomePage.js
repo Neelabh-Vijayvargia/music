@@ -17,4 +17,4 @@ export default class HomePage extends Component {
             </Switch>
         </Router>);
     }
-}
+} 
