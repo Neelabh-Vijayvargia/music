@@ -4,6 +4,7 @@ from .serializers import RoomSerializer, CreateRoomSerializer
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
+import logging
 
 
 # Create your views here.
@@ -28,7 +29,30 @@ class GetRoom(APIView):
         
         data = RoomSerializer(room[0]).data
         data['is_host'] = self.request.session.session_key == room[0].host
-        return Response(data, status = status.HTTP_200_OK)       
+        return Response(data, status = status.HTTP_200_OK)    
+
+logger = logging.getLogger(__name__)
+
+class JoinRoom(APIView):
+    def post(self, request, format=None):  
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+
+        code = request.data.get('code')
+        if code is None:
+            return Response({'Bad Request': 'Code parameter not found in request'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        room_result = Room.objects.filter(room_code=code)
+
+        if len(room_result) == 0:
+            return Response({'Room Not Found': 'Invalid Room Code.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        room = room_result[0]
+        self.request.session['room_code'] = code
+        
+        logger.debug(f"Room joined successfully: {room.room_code}")
+        
+        return Response({'message': 'Room Joined!'}, status=status.HTTP_200_OK)
 
 class CreateRoomView(APIView):
     serializer_class = CreateRoomSerializer
@@ -45,14 +69,17 @@ class CreateRoomView(APIView):
         votes_to_skip = serializer.data.get('votes_to_skip')
         host = self.request.session.session_key
         queryset = Room.objects.filter(host=host)
+
         if queryset.exists():
             room = queryset[0]
             room.guest_can_pause = guest_can_pause
             room.votes_to_skip = votes_to_skip
             room.save(update_fields=['guest_can_pause', 'votes_to_skip'])
+            self.request.session['room_code'] = room.room_code
             return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
         
         room = Room(host=host, guest_can_pause=guest_can_pause,
                     votes_to_skip=votes_to_skip)
+        self.request.session['room_code'] = room.room_code
         room.save()
         return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
