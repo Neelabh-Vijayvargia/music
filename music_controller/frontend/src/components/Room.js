@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { Grid, Button, Typography } from '@material-ui/core';
+import { useParams, useHistory } from 'react-router-dom';
 
 function Room() {
     const { roomCode } = useParams();
     const [votesToSkip, setVotesToSkip] = useState(2);
     const [guestCanPause, setGuestCanPause] = useState(false);
     const [isHost, setIsHost] = useState(false);
+    const history = useHistory();
 
     useEffect(() => {
         console.log('Room component rendered');
@@ -23,13 +25,38 @@ function Room() {
             });
     };
 
+    const leaveButtonPressed = () => {
+        const requestOptions = {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+        };
+        fetch('/api/leave-room', requestOptions).then((_response) => {
+            history.push('/');
+        });
+    };
+
     return (
-        <div>
-            <h3>Room Code: {roomCode}</h3>
-            <p>Votes to Skip: {votesToSkip}</p>
-            <p>Guest Can Pause: {guestCanPause.toString()}</p>
-            <p>Is Host: {isHost.toString()}</p>
-        </div>
+        <Grid container spacing={1}>
+            <Grid item xs={12} align='center'>
+                <Typography variant='h4' component='h4'>Code: {roomCode}</Typography>
+            </Grid>
+
+            <Grid item xs={12} align='center'>
+                <Typography variant='h6' component='h6'>Votes: {votesToSkip}</Typography>
+            </Grid>
+
+            <Grid item xs={12} align='center'>
+                <Typography variant='h6' component='h6'>Guest Can Pause: {guestCanPause.toString()}</Typography>
+            </Grid>
+
+            <Grid item xs={12} align='center'>
+                <Typography variant='h6' component='h6'>Is Host: {isHost.toString()}</Typography>
+            </Grid>
+
+            <Grid item xs={12} align='center'>
+                <Button color='secondary' variant='contained' onClick={leaveButtonPressed}>Leave Room</Button>
+            </Grid>
+        </Grid>
     );
 }
 
